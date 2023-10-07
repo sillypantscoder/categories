@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Categories</title>
+		<style>
+body {
+	font-family: sans-serif;
+}
+a {
+	color: rgb(0, 0, 200);
+}
+		</style>
+	</head>
+	<body>
+		<h1>Categories</h1>
+		<h4>Log in as:</h4>
+		<div id="names"></div>
+		<h4>Create a new user:</h4>
+		<div>Enter your name: <input type="text"></div>
+		<div><button onclick="submit()">Join!</button></div>
+		<script>
+var x = new XMLHttpRequest()
+x.open("GET", "/playerlist")
+x.addEventListener("loadend", (e) => {
+	/** @type {string[]} */
+	var names = e.target.responseText.split("\n")
+	if (names.length == 1 && names[0] == "") {
+		[...document.querySelectorAll("#names, :has( + #names)")].forEach((e) => e.remove())
+	} else {
+		names.forEach((name) => {
+			var e = document.createElement("div")
+			e.appendChild(document.createElement("a"))
+			e.children[0].innerText = name
+			e.children[0].setAttribute("href", `/game.html?name=${name}`)
+			document.querySelector("#names").appendChild(e)
+		})
+	}
+})
+x.send()
+function submit() {
+	var name = document.querySelector("input").value
+	if (name.match(/^[a-zA-Z0-9]+$/i) == null) {
+		alert("The username is invalid.")
+		alert("Nice try Dad!!!")
+		return;
+	}
+	var x = new XMLHttpRequest()
+	x.open("POST", "/createuser")
+	x.addEventListener("loadend", (e) => {
+		location.replace(`/game.html?name=${name}`)
+	})
+	x.send(name)
+}
+		</script>
+	</body>
+</html>

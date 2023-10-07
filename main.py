@@ -1,6 +1,7 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import typing
 import os
+import game as g
 import json
 
 hostName = "0.0.0.0"
@@ -22,6 +23,8 @@ def write_file(filename, content):
 	f = open(filename, "w")
 	f.write(content)
 	f.close()
+
+game: g.Game = g.Game()
 
 class HttpResponse(typing.TypedDict):
 	status: int
@@ -62,6 +65,22 @@ def get(path: str, query: URLQuery) -> HttpResponse:
 			},
 			"content": read_file("public_files" + path + "index.html")
 		}
+	elif path == "/playerlist":
+		return {
+			"status": 200,
+			"headers": {
+				"Content-Type": "text/html"
+			},
+			"content": "\n".join(game.players)
+		}
+	elif path == "/data/categories":
+		return {
+			"status": 200,
+			"headers": {
+				"Content-Type": "text/json"
+			},
+			"content": json.dumps(game.get_categories())
+		}
 	else: # 404 page
 		return {
 			"status": 404,
@@ -72,8 +91,16 @@ def get(path: str, query: URLQuery) -> HttpResponse:
 		}
 
 def post(path: str, body: bytes) -> HttpResponse:
-	if False:
-		bodydata = body.decode("UTF-8").split("\n")
+	if path == "/createuser":
+		game.players.append(body.decode("UTF-8"))
+		return {
+			"status": 200,
+			"headers": {
+				"Content-Type": "text/html"
+			},
+			"content": ""
+		}
+		# bodydata = body.decode("UTF-8").split("\n")
 	else:
 		return {
 			"status": 404,

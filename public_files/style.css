@@ -1,0 +1,31 @@
+html {
+	height: 100%;
+}
+body {
+	height: 100%;
+	margin: 0;
+	display: flex;
+	flex-direction: row;
+	font-family: sans-serif;
+}
+.column {
+	flex-grow: 1;
+}
+#categories {
+	border-right: 3px solid black;
+}
+#votehalf {
+	display: inline-flex;
+	flex-direction: column;
+}
+.row {
+	flex-grow: 1;
+}
+#currentvote {
+	border-bottom: 1px solid black;
+	flex-grow: 2;
+}
+
+h1 {
+	text-align: center;
+}
