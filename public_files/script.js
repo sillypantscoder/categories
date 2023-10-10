@@ -14,6 +14,21 @@ function request(url) {
 	})
 }
 
+/**
+ * Add buttons to the parent element.
+ * @param {{ class: string, onclick: string }[]} buttons The buttons to add.
+ * @param {HTMLElement} parent The parent element.
+ */
+function addButtons(buttons, parent) {
+	for (var info of buttons) {
+		var button = document.createElement("button")
+		button.classList.add("button")
+		button.classList.add("btn-" + info.class)
+		button.setAttribute("onclick", info.onclick)
+		parent.appendChild(button)
+	}
+}
+
 function refreshCategories() {
 	var data = request("/data/categories")
 	data.then((v) => {
@@ -23,47 +38,37 @@ function refreshCategories() {
 	}).then((v) => {
 		for (var vi = 0; vi < v.length; vi++) {
 			var category = v[vi]
-			var e = document.createElement("div")
-			e.classList.add("category")
-			document.querySelector("#categories").appendChild(e)
+			var category_elm = document.createElement("div")
+			category_elm.classList.add("category")
+			document.querySelector("#categories").appendChild(category_elm)
 			// add header
-			var h = document.createElement("h5")
-			h.innerText = category.name
-			e.appendChild(h)
+			var header = document.createElement("h5")
+			header.innerText = category.name
+			category_elm.appendChild(header)
 			// add header buttons
-			for (var info of [
-				{ class: "remove" }
-			]) {
-				var b = document.createElement("button")
-				b.classList.add("button")
-				b.classList.add("btn-" + info.class)
-				h.appendChild(b)
-			}
-			// add spacer
-			var s = document.createElement("div")
-				s.classList.add("spacer")
-				e.appendChild(s)
+			addButtons([
+				{ class: "delete", onclick: `` }
+			], header)
 			// add items
-			for (var i = 0; i < category.items.length; i++) {
-				var s = document.createElement("button")
-				s.classList.add("new-btn")
-				s.setAttribute("onclick", `createNewItem(${vi}, ${i})`)
-				e.appendChild(s)
-				var s = document.createElement("button")
-				s.classList.add("delete-btn")
-				e.appendChild(s)
-				var s = document.createElement("button")
-				s.classList.add("move-btn")
-				e.appendChild(s)
+			for (var item = 0; item < category.items.length; item++) {
 				// item
-				var i = document.createElement("div")
-				i.classList.add("item")
-				i.innerText = category.items[i]
-				e.appendChild(i)
+				var item_elm = document.createElement("div")
+				item_elm.classList.add("item")
+				category_elm.appendChild(item_elm)
+				// buttons
+				addButtons([
+					{ class: "new", onclick: `createNewItem(${vi}, ${item})` },
+					{ class: "delete", onclick: `createNewItem(${vi}, ${item})` },
+					{ class: "move", onclick: `createNewItem(${vi}, ${item})` }
+				], item_elm)
+				// text
+				var text_elm = document.createElement("span")
+				text_elm.innerText = category.items[item]
+				item_elm.appendChild(text_elm)
 			}
-			var s = document.createElement("button")
-			s.classList.add("new-btn")
-			e.appendChild(s)
+			var big = document.createElement("div")
+			big.innerHTML = `<button class="button new-big-btn" onclick="createNewItem(${vi}, ${item})">+ New item</button>`
+			category_elm.appendChild(big)
 		}
 	})
 }

@@ -80,69 +80,13 @@ button.button:active {
 	background: var(--icon) no-repeat center center, var(--border-color);
 }
 
-/* Special button styles */
 
-button.new-btn {
-	border: none;
-	background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMCAxMCI+Cgk8cGF0aCBkPSJNIDEgNSBMIDkgNSBNIDUgMSBMIDUgOSIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLXdpZHRoPSIxIiBzdHJva2UtbGluZWNhcD0icm91bmQiIGZpbGw9Im5vbmUiIC8+Cjwvc3ZnPg==), lime;
-	position: absolute;
-	font-size: 1em;
-	margin-left: 1.1em;
-	/* margin-top: -0.5em; */
-}
-button.new-btn::after {
-	content: "";
-	position: absolute;
-	width: 0.5em;
-	height: 1em;
-	left: 100%;
-	top: 0;
-	background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1IDEwIj4KCTxwYXRoIGQ9Ik0gMCAwIEwgNSA1IEwgMCAxMCBaIiBmaWxsPSJsaW1lIiAvPgo8L3N2Zz4=);
-}
-button.delete-btn {
-	border: none;
-	background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMCAxMCI+Cgk8cGF0aCBkPSJNIDEgMSBMIDkgOSBNIDEgOSBMIDkgMSIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLXdpZHRoPSIxIiBzdHJva2UtbGluZWNhcD0icm91bmQiIGZpbGw9Im5vbmUiIC8+Cjwvc3ZnPg==), red;
-	position: absolute;
-	font-size: 1em;
-	margin-left: 2.6em;
-	margin-top: 0.55em;
-}
-button.delete-btn::before {
-	content: "";
-	position: absolute;
-	width: 0.5em;
-	height: 1em;
-	right: 100%;
-	top: 0;
-	background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1IDEwIj4KCTxwYXRoIGQ9Ik0gNSAwIEwgMCA1IEwgNSAxMCBaIiBmaWxsPSJyZWQiIC8+Cjwvc3ZnPg==);
-}
-button.move-btn {
-	border: none;
-	background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMCAxMCI+Cgk8cGF0aCBkPSJNIDMgMyBMIDUgMSBMIDcgMyBNIDUgMSBMIDUgOSBMIDMgNyBNIDUgOSBMIDcgNyIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLXdpZHRoPSIxIiBzdHJva2UtbGluZWNhcD0icm91bmQiIGZpbGw9Im5vbmUiIC8+Cjwvc3ZnPg==), orange;
-	position: absolute;
-	font-size: 1em;
-	margin-left: 3.7em;
-	margin-top: 0.55em;
-}
 
-.item {
-	padding-top: 0em;
-	padding-left: 4em;
-	padding-bottom: 0;
-	margin-top: 0.5em;
-	margin-bottom: -0.5em;
-}
-.spacer {
-	margin-bottom: -0.5em;
-	padding: 0.25em;
-}
-
-.delete-btn:hover + .move-btn + .item {
-	background: #F004;
-}
-.item:has( + .new-btn:hover), .new-btn:hover + .delete-btn + .move-btn + .item {
-	background: #0F04;
-}
-.move-btn:hover + .item {
-	background: #FF04;
+button.new-big-btn {
+	width: auto;
+	height: auto;
+	padding: 0.3em;
+	--bg-color: lime;
+	--border-color: green;
+	--icon: none;
 }
