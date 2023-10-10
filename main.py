@@ -81,7 +81,16 @@ def get(path: str, query: URLQuery) -> HttpResponse:
 			},
 			"content": json.dumps(game.get_categories())
 		}
+	elif path == "/data/vote":
+		return {
+			"status": 200,
+			"headers": {
+				"Content-Type": "text/json"
+			},
+			"content": json.dumps(game.get_vote())
+		}
 	else: # 404 page
+		print("404 encountered! Path: " + path + " Query: " + repr(query.fields))
 		return {
 			"status": 404,
 			"headers": {
@@ -101,7 +110,26 @@ def post(path: str, body: bytes) -> HttpResponse:
 			"content": ""
 		}
 		# bodydata = body.decode("UTF-8").split("\n")
+	elif path == "/data/create_vote":
+		game.create_vote(json.loads(body.decode("UTF-8")))
+		return {
+			"status": 200,
+			"headers": {
+				"Content-Type": "text/html"
+			},
+			"content": ""
+		}
+	elif path == "/data/vote":
+		game.vote(json.loads(body.decode("UTF-8")))
+		return {
+			"status": 200,
+			"headers": {
+				"Content-Type": "text/html"
+			},
+			"content": ""
+		}
 	else:
+		print("404 POST encountered! Path: " + path + " Body: " + repr(body))
 		return {
 			"status": 404,
 			"headers": {

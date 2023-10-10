@@ -17,6 +17,7 @@ body {
 #votehalf {
 	display: inline-flex;
 	flex-direction: column;
+	text-align: center;
 }
 .row {
 	flex-grow: 1;
@@ -52,7 +53,7 @@ h1 {
 	border-right: 1px solid black;
 	margin: 0 1em;
 	padding: 0.5em;
-	padding-top: 0.75em;
+	padding-top: 0;
 	content: "";
 	display: block;
 	border-bottom: 1px solid black;
@@ -89,4 +90,35 @@ button.new-big-btn {
 	--bg-color: lime;
 	--border-color: green;
 	--icon: none;
+}
+
+/* Vote styles */
+
+.vote-button-container {
+	display: flex;
+}
+.vote-button {
+	background: black;
+	color: white;
+	margin: 1em;
+	padding: 1em;
+	flex-grow: 1;
+}
+
+.player {
+	display: inline-block;
+	margin: 1em;
+	padding: 1em;
+	border: 1px solid black;
+	border-radius: 1em;
+}
+.player.player-ready {
+	border-color: blue;
+	border-width: 3px;
+}
+.player.player-vote-true {
+	background: lime;
+}
+.player.player-vote-false {
+	background: red;
 }
