@@ -75,6 +75,7 @@ button.button {
 	height: 1em;
 	padding: 0;
 	margin: 0.1em;
+	color: black;
 }
 button.button:active {
 	border: 2px solid var(--bg-color);

@@ -46,7 +46,7 @@ function addButtons(buttons, parent) {
 	parent.appendChild(menu)
 }
 
-var previousCategories = []
+var previousCategories = false
 function refreshCategories() {
 	var data = request("/data/categories")
 	data.then((v) => {

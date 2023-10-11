@@ -144,8 +144,6 @@ class Game:
 		self.currentVote: None | ActiveVote = None
 		self.voteQueue: list[Action] = []
 		self.voteQueue: list[Action] = []
-		self.categories.append(Category("hi"))
-		for i in range(10): self.categories[0].items.append(Item(f"ASDFASDF{i}"))
 	def get_categories(self) -> list[dict[str, str | list[str]]]:
 		return [
 			{"name": c.name, "items": [x.name for x in c.items]}
@@ -188,3 +186,13 @@ class Game:
 		if self.currentVote == None:
 			if len(self.voteQueue) > 0:
 				ActiveVote(self)
+
+# def load_game(data: str):
+# 	import json
+# 	decoded = json.loads(data)
+# 	game = Game()
+# 	for category in decoded["categories"]:
+# 		game.categories.append(Category(category["name"]))
+# 		for item in category["items"]:
+# 			game.categories[-1].items.append(Item(item["name"], item["text"]))
+# 	return game
