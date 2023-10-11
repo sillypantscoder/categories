@@ -8,7 +8,11 @@ function request(url) {
 		var x = new XMLHttpRequest()
 		x.open("GET", url)
 		x.addEventListener("loadend", (e) => {
-			resolve(e.target.responseText)
+			if (e.target.status != 200) location.replace("/")
+			else resolve(e.target.responseText)
+		})
+		x.addEventListener("error", () => {
+			location.replace("/")
 		})
 		x.send()
 	})
@@ -84,7 +88,7 @@ function refreshCategories() {
 				{ text: "Insert category above", onclick: ((vi, item) => (() => createNewCategory(vi)))(vi) },
 				{ text: "Insert category below", onclick: ((vi, item) => (() => createNewCategory(vi + 1)))(vi) },
 				{ text: "Delete category", onclick: ((vi, item) => (() => deleteCategory(vi)))(vi) },
-				{ text: "Move category [TODO]", onclick: () => {} },
+				{ text: "Move category", onclick: ((vi, item) => (() => moveCategory(vi)))(vi) },
 				{ text: "Rename category", onclick: ((vi, item) => (() => editCategory(vi)))(vi) }
 			], header)
 			header.appendChild(document.createElement("span"))
@@ -100,7 +104,7 @@ function refreshCategories() {
 					{ text: "New item above", onclick: ((vi, item) => (() => createNewItem(vi, item)))(vi, item) },
 					{ text: "New item below", onclick: ((vi, item) => (() => createNewItem(vi, item + 1)))(vi, item) },
 					{ text: "Delete item", onclick: ((vi, item) => (() => deleteItem(vi, item)))(vi, item) },
-					{ text: "Move item [TODO]", onclick: () => {} },
+					{ text: "Move item", onclick: ((vi, item) => (() => moveItem(vi, item)))(vi, item) },
 					{ text: "Edit item", onclick: ((vi, item) => (() => editItem(vi, item)))(vi, item) }
 				], item_elm)
 				// text
@@ -300,6 +304,39 @@ function editCategory(categoryno) {
 			type: "edit_category",
 			categoryno,
 			text: info.querySelector("input").value
+		})).then(() => {
+			event.target.parentNode.parentNode.remove()
+		})
+	})
+}
+function moveItem(categoryno, itemno) {
+	[...document.querySelectorAll("#createvote > * + *")].forEach((e) => e.remove())
+	var info = document.createElement("div")
+	document.querySelector("#createvote").appendChild(info)
+	// info
+	info.innerHTML = `<div>Move item:</div><div>Shift by: <input type="number" value="0"></div><div><button>Submit</button><button onclick="this.parentNode.parentNode.remove()">Cancel</button></div>`
+	info.children[2].children[0].addEventListener("click", (event) => {
+		post("/data/create_vote", JSON.stringify({
+			type: "move_item",
+			categoryno,
+			itemno,
+			amount: info.querySelector("input").valueAsNumber
+		})).then(() => {
+			event.target.parentNode.parentNode.remove()
+		})
+	})
+}
+function moveCategory(categoryno) {
+	[...document.querySelectorAll("#createvote > * + *")].forEach((e) => e.remove())
+	var info = document.createElement("div")
+	document.querySelector("#createvote").appendChild(info)
+	// info
+	info.innerHTML = `<div>Move category:</div><div>Shift by: <input type="number" value="0"></div><div><button>Submit</button><button onclick="this.parentNode.parentNode.remove()">Cancel</button></div>`
+	info.children[2].children[0].addEventListener("click", (event) => {
+		post("/data/create_vote", JSON.stringify({
+			type: "move_category",
+			categoryno,
+			amount: info.querySelector("input").valueAsNumber
 		})).then(() => {
 			event.target.parentNode.parentNode.remove()
 		})

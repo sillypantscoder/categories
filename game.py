@@ -76,6 +76,30 @@ class RenameCategoryAction(Action):
 	def getName(self):
 		return f"Rename category \"{self.category.name}\" to \"{self.newName}\""
 
+class MoveItemAction(Action):
+	def __init__(self, category: Category, item: Item, amount: int):
+		self.category: Category = category
+		self.item: Item = item
+		self.amount: int = amount
+	def execute(self):
+		new_index = self.category.items.index(self.item) + self.amount
+		self.category.items.remove(self.item)
+		self.category.items.insert(new_index, self.item)
+	def getName(self):
+		return f"Move item \"{self.item.name}\" in category \"{self.category.name}\" {abs(self.amount)} spaces {'up' if self.amount < 0 else 'down'}"
+
+class MoveCategoryAction(Action):
+	def __init__(self, game: "Game", category: Category, amount: int):
+		self.game: "Game" = game
+		self.category: Category = category
+		self.amount: int = amount
+	def execute(self):
+		new_index = self.game.categories.index(self.category) + self.amount
+		self.game.categories.remove(self.category)
+		self.game.categories.insert(new_index, self.category)
+	def getName(self):
+		return f"Move category \"{self.category.name}\" {abs(self.amount)} spaces {'up' if self.amount < 0 else 'down'}"
+
 class ActiveVote:
 	def __init__(self, game: "Game"):
 		self.target = game
@@ -96,7 +120,6 @@ class ActiveVote:
 				votes_for = 0
 				votes_against = 0
 				for vote in self.votes:
-					print(vote)
 					if vote:
 						votes_for += 1
 					else:
@@ -149,6 +172,11 @@ class Game:
 		elif data["type"] == "edit_category":
 			category = self.categories[data["categoryno"]]
 			self.voteQueue.append(RenameCategoryAction(category, data["text"]))
+		elif data["type"] == "move_item":
+			category = self.categories[data["categoryno"]]
+			self.voteQueue.append(MoveItemAction(category, category.items[data["itemno"]], data["amount"]))
+		elif data["type"] == "move_category":
+			self.voteQueue.append(MoveCategoryAction(self, self.categories[data["categoryno"]], data["amount"]))
 		else:
 			print("Unknown type!!!")
 			print(repr(data))
