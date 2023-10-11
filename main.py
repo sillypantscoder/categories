@@ -28,6 +28,10 @@ def write_file(filename, content):
 game: g.Game = g.Game()
 if os.path.isfile("save.json"):
 	game = g.load_game(read_file("save.json"))
+else:
+	game.categories.append(g.Category("Example Category"))
+	for i in range(9):
+		game.categories[0].items.append(g.Item(f"Example Item {i + 1}"))
 
 class HttpResponse(typing.TypedDict):
 	status: int

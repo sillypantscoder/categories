@@ -125,7 +125,7 @@ function refreshCategories() {
 		var big = document.createElement("div")
 		big.innerHTML = `<button class="button new-big-btn" onclick="createNewCategory(${vi})">+ Insert category</button>`
 		document.querySelector("#categories").appendChild(big)
-	}).then((zzz) => {
+	}).then(() => {
 		setTimeout(() => {
 			refreshCategories()
 		}, 1000)
@@ -139,6 +139,11 @@ function refreshVote() {
 		var r = JSON.parse(v)
 		return r;
 	}).then((v) => {
+		// Player existence check...
+		if (v.players.indexOf(query.name) == -1) {
+			location.replace("/")
+		}
+		// Setup
 		[...document.querySelectorAll("#currentvote > * + *")].forEach((e) => e.remove())
 		var e = document.createElement("div")
 		document.querySelector("#currentvote").appendChild(e)
