@@ -92,6 +92,10 @@ button.new-big-btn {
 	--border-color: green;
 	--icon: none;
 }
+button.new-big-btn.btnred {
+	--bg-color: orange;
+	--border-color: red;
+}
 #categories > div > button {
 	margin-left: 2em;
 }

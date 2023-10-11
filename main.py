@@ -26,8 +26,8 @@ def write_file(filename, content):
 
 # setup
 game: g.Game = g.Game()
-# if os.path.isfile("save.json"):
-# 	game = g.load_game(read_file("save.json"))
+if os.path.isfile("save.json"):
+	game = g.load_game(read_file("save.json"))
 
 class HttpResponse(typing.TypedDict):
 	status: int
@@ -48,7 +48,7 @@ class URLQuery:
 			return ''
 
 def get(path: str, query: URLQuery) -> HttpResponse:
-	# g.save_game(game)
+	write_file("save.json", g.save_game(game))
 	if os.path.isfile("public_files" + path):
 		return {
 			"status": 200,

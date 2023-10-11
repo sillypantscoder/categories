@@ -1,15 +1,34 @@
+import random
+
+def generate_id():
+	id = random.randint(0, 1000000)
+	return id
+
 class Category:
 	def __init__(self, name: str):
 		self.name: str = name
 		self.items: list[Item] = []
+		self.id = generate_id()
 	def __repr__(self):
 		return f"Category:" + "".join(["\n\t- " + x.name for x in self.items])
+	def save(self):
+		return {
+			"name": self.name,
+			"items": [x.save() for x in self.items],
+			"id": self.id
+		}
 
 class Item:
 	def __init__(self, name: str):
 		self.name: str = name
+		self.id = generate_id()
 	def __repr__(self):
 		return f"Item {{ {repr(self.name)} }}"
+	def save(self):
+		return {
+			"name": self.name,
+			"id": self.id
+		}
 
 class Action:
 	def __init__(self):
@@ -18,6 +37,10 @@ class Action:
 		pass
 	def getName(self):
 		return "Invalid Action"
+	def save(self):
+		return {
+			"type": "invalid"
+		}
 
 class AddItemAction(Action):
 	def __init__(self, category: Category, index: int, item: Item):
@@ -28,6 +51,13 @@ class AddItemAction(Action):
 		self.category.items.insert(self.index, self.item)
 	def getName(self):
 		return f"Add item \"{self.item.name}\" to category \"{self.category.name}\""
+	def save(self):
+		return {
+			"type": "add_item",
+			"category": self.category.save(),
+			"index": self.index,
+			"item": self.item.save()
+		}
 
 class DeleteItemAction(Action):
 	def __init__(self, category: Category, item: Item):
@@ -37,6 +67,12 @@ class DeleteItemAction(Action):
 		self.category.items.remove(self.item)
 	def getName(self):
 		return f"Delete item \"{self.item.name}\" from category \"{self.category.name}\""
+	def save(self):
+		return {
+			"type": "delete_item",
+			"category": self.category.save(),
+			"item": self.item.save()
+		}
 
 class AddCategoryAction(Action):
 	def __init__(self, game: "Game", category: Category, index: int):
@@ -47,6 +83,12 @@ class AddCategoryAction(Action):
 		self.game.categories.insert(self.index, self.category)
 	def getName(self):
 		return f"Add category \"{self.category.name}\" to game"
+	def save(self):
+		return {
+			"type": "add_category",
+			"category": self.category.save(),
+			"index": self.index
+		}
 
 class DeleteCategoryAction(Action):
 	def __init__(self, game: "Game", category: Category):
@@ -56,6 +98,11 @@ class DeleteCategoryAction(Action):
 		self.game.categories.remove(self.category)
 	def getName(self):
 		return f"Delete category \"{self.category.name}\" from game"
+	def save(self):
+		return {
+			"type": "delete_category",
+			"category": self.category.save()
+		}
 
 class RenameItemAction(Action):
 	def __init__(self, category: Category, item: Item, newName: str):
@@ -66,6 +113,13 @@ class RenameItemAction(Action):
 		self.item.name = self.newName
 	def getName(self):
 		return f"Rename item \"{self.item.name}\" in category \"{self.category.name}\" to \"{self.newName}\""
+	def save(self):
+		return {
+			"type": "rename_item",
+			"category": self.category.save(),
+			"item": self.item.save(),
+			"newName": self.newName
+		}
 
 class RenameCategoryAction(Action):
 	def __init__(self, category: Category, newName: str):
@@ -75,6 +129,12 @@ class RenameCategoryAction(Action):
 		self.category.name = self.newName
 	def getName(self):
 		return f"Rename category \"{self.category.name}\" to \"{self.newName}\""
+	def save(self):
+		return {
+			"type": "rename_category",
+			"category": self.category.save(),
+			"newName": self.newName
+		}
 
 class MoveItemAction(Action):
 	def __init__(self, category: Category, item: Item, amount: int):
@@ -87,6 +147,13 @@ class MoveItemAction(Action):
 		self.category.items.insert(new_index, self.item)
 	def getName(self):
 		return f"Move item \"{self.item.name}\" in category \"{self.category.name}\" {abs(self.amount)} spaces {'up' if self.amount < 0 else 'down'}"
+	def save(self):
+		return {
+			"type": "move_item",
+			"category": self.category.save(),
+			"item": self.item.save(),
+			"amount": self.amount
+		}
 
 class MoveCategoryAction(Action):
 	def __init__(self, game: "Game", category: Category, amount: int):
@@ -99,6 +166,12 @@ class MoveCategoryAction(Action):
 		self.game.categories.insert(new_index, self.category)
 	def getName(self):
 		return f"Move category \"{self.category.name}\" {abs(self.amount)} spaces {'up' if self.amount < 0 else 'down'}"
+	def save(self):
+		return {
+			"type": "move_category",
+			"category": self.category.save(),
+			"amount": self.amount
+		}
 
 class ActiveVote:
 	def __init__(self, game: "Game"):
@@ -136,13 +209,19 @@ class ActiveVote:
 			"ready": self.ready,
 			"finished": self.finished
 		}
+	def save(self):
+		return {
+			"action": self.action.save(),
+			"votes": self.votes,
+			"ready": self.ready,
+			"finished": self.finished
+		}
 
 class Game:
 	def __init__(self):
 		self.players: list[str] = []
 		self.categories: list[Category] = []
 		self.currentVote: None | ActiveVote = None
-		self.voteQueue: list[Action] = []
 		self.voteQueue: list[Action] = []
 	def get_categories(self) -> list[dict[str, str | list[str]]]:
 		return [
@@ -186,13 +265,77 @@ class Game:
 		if self.currentVote == None:
 			if len(self.voteQueue) > 0:
 				ActiveVote(self)
+	def save(self):
+		return {
+			"players": self.players,
+			"categories": [c.save() for c in self.categories],
+			"currentVote": self.currentVote.save() if self.currentVote else False,
+			"voteQueue": [a.save() for a in self.voteQueue]
+		}
 
-# def load_game(data: str):
-# 	import json
-# 	decoded = json.loads(data)
-# 	game = Game()
-# 	for category in decoded["categories"]:
-# 		game.categories.append(Category(category["name"]))
-# 		for item in category["items"]:
-# 			game.categories[-1].items.append(Item(item["name"], item["text"]))
-# 	return game
+def save_game(game: Game):
+	import json
+	data = game.save()
+	return json.dumps(data, indent='\t')
+
+def load_game(data: str):
+	import json
+	decoded = json.loads(data)
+	game = Game()
+	game.players = decoded["players"]
+	items = []
+	def loadItem(data):
+		# Search for existing item
+		for t in items:
+			if t.id == data["id"]:
+				return t
+		# Construct the data
+		i = Item(data["name"])
+		i.id = data["id"]
+		items.append(i)
+		return i
+	categories = []
+	def loadCategory(data):
+		# Search for existing item
+		for c in categories:
+			if c.id == data["id"]:
+				return c
+		# Construct the data
+		category = Category(data["name"])
+		category.id = data["id"]
+		for item in data["items"]:
+			category.items.append(loadItem(item))
+		categories.append(category)
+		return category
+	def loadAction(data):
+		if data["type"] == "add_item":
+			return AddItemAction(loadCategory(data["category"]), data["index"], loadItem(data["item"]))
+		elif data["type"] == "delete_item":
+			return DeleteItemAction(loadCategory(data["category"]), loadItem(data["item"]))
+		elif data["type"] == "add_category":
+			return AddCategoryAction(game, loadCategory(data["category"]), data["index"])
+		elif data["type"] == "delete_category":
+			return DeleteCategoryAction(game, loadCategory(data["category"]))
+		elif data["type"] == "rename_item":
+			return RenameItemAction(loadCategory(data["category"]), loadItem(data["item"]), data["newName"])
+		elif data["type"] == "rename_category":
+			return RenameCategoryAction(loadCategory(data["category"]), data["newName"])
+		elif data["type"] == "move_item":
+			return MoveItemAction(loadCategory(data["category"]), loadItem(data["item"]), data["amount"])
+		elif data["type"] == "move_category":
+			return MoveCategoryAction(game, loadCategory(data["category"]), data["amount"])
+		else:
+			return Action()
+	for category in decoded["categories"]:
+		game.categories.append(loadCategory(category))
+	if decoded["currentVote"]:
+		game.voteQueue = [loadAction(decoded["currentVote"]["action"])]
+		ActiveVote(game)
+		assert game.currentVote != None
+		game.currentVote.votes = decoded["currentVote"]["votes"]
+		game.currentVote.ready = decoded["currentVote"]["ready"]
+		game.currentVote.finished = decoded["currentVote"]["finished"]
+	for action in decoded["voteQueue"]:
+		o = loadAction(action)
+		game.voteQueue.append(o)
+	return game

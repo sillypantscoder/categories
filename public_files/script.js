@@ -71,6 +71,11 @@ function refreshCategories() {
 		}
 		previousCategories = v;
 		[...document.querySelectorAll("#categories > * + *")].forEach((e) => e.remove())
+		// logout button
+			var big = document.createElement("div")
+			big.innerHTML = `<button class="button new-big-btn btnred" onclick="location.replace('/')">Log out</button>`
+			document.querySelector("#categories").appendChild(big)
+		// list the categories!
 		for (var vi = 0; vi < v.length; vi++) {
 			// insert category
 			var big = document.createElement("div")
