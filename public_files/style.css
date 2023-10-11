@@ -91,6 +91,9 @@ button.new-big-btn {
 	--border-color: green;
 	--icon: none;
 }
+#categories > div > button {
+	margin-left: 2em;
+}
 
 /* Vote styles */
 
@@ -103,6 +106,15 @@ button.new-big-btn {
 	margin: 1em;
 	padding: 1em;
 	flex-grow: 1;
+}
+.vote-button-yes {
+	background: green;
+}
+.vote-button-no {
+	background: red;
+}
+.vote-button-finish {
+	background: blue;
 }
 
 .player {

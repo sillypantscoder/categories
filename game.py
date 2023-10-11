@@ -17,19 +17,36 @@ class Action:
 	def execute(self):
 		pass
 	def getName(self):
-		return "Invalid Item"
+		return "Invalid Action"
 
-class AddItemAction:
+class AddItemAction(Action):
 	def __init__(self, category: Category, index: int, item: Item):
 		self.category: Category = category
 		self.index: int = index
 		self.item: Item = item
 	def execute(self):
-		# print(self.category.items)
 		self.category.items.insert(self.index, self.item)
-		# print(self.category.items)
 	def getName(self):
 		return f"Add item \"{self.item.name}\" to category \"{self.category.name}\""
+
+class DeleteItemAction(Action):
+	def __init__(self, category: Category, item: Item):
+		self.category: Category = category
+		self.item: Item = item
+	def execute(self):
+		self.category.items.remove(self.item)
+	def getName(self):
+		return f"Delete item \"{self.item.name}\" from category \"{self.category.name}\""
+
+class AddCategoryAction(Action):
+	def __init__(self, game: "Game", category: Category, index: int):
+		self.game: "Game" = game
+		self.category: Category = category
+		self.index: int = index
+	def execute(self):
+		self.game.categories.insert(self.index, self.category)
+	def getName(self):
+		return f"Add category \"{self.category.name}\" to game"
 
 class ActiveVote:
 	def __init__(self, game: "Game"):
@@ -91,9 +108,18 @@ class Game:
 	def create_vote(self, data: dict):
 		if data["type"] == "create_item":
 			self.voteQueue.append(AddItemAction(self.categories[data["categoryno"]], data["itemno"], Item(data["text"])))
+		elif data["type"] == "delete_item":
+			category = self.categories[data["categoryno"]]
+			self.voteQueue.append(DeleteItemAction(category, category.items[data["itemno"]]))
+		elif data["type"] == "create_category":
+			self.voteQueue.append(AddCategoryAction(self, Category(data["text"]), data["categoryno"]))
+		else:
+			print("Unknown type!!!")
+			print(repr(data))
 		self.update_active_vote()
 	def vote(self, data: dict):
-		self.currentVote.vote(data["name"], data["value"])
+		if self.currentVote != None:
+			self.currentVote.vote(data["name"], data["value"])
 	def update_active_vote(self):
 		if self.currentVote == None:
 			if len(self.voteQueue) > 0:

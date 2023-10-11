@@ -68,6 +68,11 @@ function refreshCategories() {
 		previousCategories = v;
 		[...document.querySelectorAll("#categories > * + *")].forEach((e) => e.remove())
 		for (var vi = 0; vi < v.length; vi++) {
+			// insert category
+			var big = document.createElement("div")
+			big.innerHTML = `<button class="button new-big-btn" onclick="createNewCategory(${vi})">+ Insert category</button>`
+			document.querySelector("#categories").appendChild(big)
+			// init
 			var category = v[vi]
 			var category_elm = document.createElement("div")
 			category_elm.classList.add("category")
@@ -76,8 +81,8 @@ function refreshCategories() {
 			var header = document.createElement("h5")
 			category_elm.appendChild(header)
 			addButtons([
-				{ text: "Insert category above [TODO]", onclick: () => {} },
-				{ text: "Insert category below [TODO]", onclick: () => {} },
+				{ text: "Insert category above", onclick: ((vi, item) => (() => createNewCategory(vi)))(vi) },
+				{ text: "Insert category below", onclick: ((vi, item) => (() => createNewCategory(vi + 1)))(vi) },
 				{ text: "Delete category [TODO]", onclick: () => {} },
 				{ text: "Move category [TODO]", onclick: () => {} },
 				{ text: "Rename category [TODO]", onclick: () => {} }
@@ -94,7 +99,7 @@ function refreshCategories() {
 				addButtons([
 					{ text: "New item above", onclick: ((vi, item) => (() => createNewItem(vi, item)))(vi, item) },
 					{ text: "New item below", onclick: ((vi, item) => (() => createNewItem(vi, item + 1)))(vi, item) },
-					{ text: "Delete item [TODO]", onclick: () => {} },
+					{ text: "Delete item", onclick: ((vi, item) => (() => deleteItem(vi, item)))(vi, item) },
 					{ text: "Move item [TODO]", onclick: () => {} },
 					{ text: "Edit item [TODO]", onclick: () => {} }
 				], item_elm)
@@ -107,6 +112,10 @@ function refreshCategories() {
 			big.innerHTML = `<button class="button new-big-btn" onclick="createNewItem(${vi}, ${item})">+ New item</button>`
 			category_elm.appendChild(big)
 		}
+		// insert category
+		var big = document.createElement("div")
+		big.innerHTML = `<button class="button new-big-btn" onclick="createNewCategory(${vi})">+ Insert category</button>`
+		document.querySelector("#categories").appendChild(big)
 	}).then((zzz) => {
 		setTimeout(() => {
 			refreshCategories()
@@ -144,6 +153,8 @@ function refreshVote() {
 			}
 			if (v.vote.finished) {
 				if (hasFinished) {
+					e.appendChild(document.createElement("h4"))
+					e.children[1].innerText = "Please wait for everyone else to finish!"
 				} else {
 					var votes = [0, 0]
 					for (var vote of v.vote.votes) votes[vote * 1] += 1
@@ -160,7 +171,7 @@ function refreshVote() {
 			} else {
 				if (hasFinished) {
 					e.appendChild(document.createElement("h4"))
-					e.children[0].innerText = "Please wait for everyone else to vote!"
+					e.children[1].innerText = "Please wait for everyone else to vote!"
 				} else {
 					// Add vote buttons
 					e.appendChild(document.createElement("div"))
@@ -208,6 +219,38 @@ function createNewItem(categoryno, itemno) {
 			type: "create_item",
 			categoryno,
 			itemno,
+			text: info.querySelector("input").value
+		})).then(() => {
+			event.target.parentNode.parentNode.remove()
+		})
+	})
+}
+function deleteItem(categoryno, itemno) {
+	[...document.querySelectorAll("#createvote > * + *")].forEach((e) => e.remove())
+	var info = document.createElement("div")
+	document.querySelector("#createvote").appendChild(info)
+	// info
+	info.innerHTML = `<div>Delete item:</div><div>Category: <b>${previousCategories[categoryno].name}</b><br>Item: <b>${previousCategories[categoryno].items[itemno]}</b></div><div><button>Submit</button><button onclick="this.parentNode.parentNode.remove()">Cancel</button></div>`
+	info.children[2].children[0].addEventListener("click", (event) => {
+		post("/data/create_vote", JSON.stringify({
+			type: "delete_item",
+			categoryno,
+			itemno
+		})).then(() => {
+			event.target.parentNode.parentNode.remove()
+		})
+	})
+}
+function createNewCategory(categoryno) {
+	[...document.querySelectorAll("#createvote > * + *")].forEach((e) => e.remove())
+	var info = document.createElement("div")
+	document.querySelector("#createvote").appendChild(info)
+	// info
+	info.innerHTML = `<div>Create new category:</div><div>Name: <input type="text" placeholder="Category title here..."></div><div><button>Submit</button><button onclick="this.parentNode.parentNode.remove()">Cancel</button></div>`
+	info.children[2].children[0].addEventListener("click", (event) => {
+		post("/data/create_vote", JSON.stringify({
+			type: "create_category",
+			categoryno,
 			text: info.querySelector("input").value
 		})).then(() => {
 			event.target.parentNode.parentNode.remove()
