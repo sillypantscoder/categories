@@ -83,9 +83,9 @@ function refreshCategories() {
 			addButtons([
 				{ text: "Insert category above", onclick: ((vi, item) => (() => createNewCategory(vi)))(vi) },
 				{ text: "Insert category below", onclick: ((vi, item) => (() => createNewCategory(vi + 1)))(vi) },
-				{ text: "Delete category [TODO]", onclick: () => {} },
+				{ text: "Delete category", onclick: ((vi, item) => (() => deleteCategory(vi)))(vi) },
 				{ text: "Move category [TODO]", onclick: () => {} },
-				{ text: "Rename category [TODO]", onclick: () => {} }
+				{ text: "Rename category", onclick: ((vi, item) => (() => editCategory(vi)))(vi) }
 			], header)
 			header.appendChild(document.createElement("span"))
 			header.children[header.children.length - 1].innerText = category.name
@@ -101,7 +101,7 @@ function refreshCategories() {
 					{ text: "New item below", onclick: ((vi, item) => (() => createNewItem(vi, item + 1)))(vi, item) },
 					{ text: "Delete item", onclick: ((vi, item) => (() => deleteItem(vi, item)))(vi, item) },
 					{ text: "Move item [TODO]", onclick: () => {} },
-					{ text: "Edit item [TODO]", onclick: () => {} }
+					{ text: "Edit item", onclick: ((vi, item) => (() => editItem(vi, item)))(vi, item) }
 				], item_elm)
 				// text
 				var text_elm = document.createElement("span")
@@ -250,6 +250,54 @@ function createNewCategory(categoryno) {
 	info.children[2].children[0].addEventListener("click", (event) => {
 		post("/data/create_vote", JSON.stringify({
 			type: "create_category",
+			categoryno,
+			text: info.querySelector("input").value
+		})).then(() => {
+			event.target.parentNode.parentNode.remove()
+		})
+	})
+}
+function deleteCategory(categoryno) {
+	[...document.querySelectorAll("#createvote > * + *")].forEach((e) => e.remove())
+	var info = document.createElement("div")
+	document.querySelector("#createvote").appendChild(info)
+	// info
+	info.innerHTML = `<div>Delete category:</div><div>Category: <b>${previousCategories[categoryno].name}</b></div><div><button>Submit</button><button onclick="this.parentNode.parentNode.remove()">Cancel</button></div>`
+	info.children[2].children[0].addEventListener("click", (event) => {
+		post("/data/create_vote", JSON.stringify({
+			type: "delete_category",
+			categoryno
+		})).then(() => {
+			event.target.parentNode.parentNode.remove()
+		})
+	})
+}
+function editItem(categoryno, itemno) {
+	[...document.querySelectorAll("#createvote > * + *")].forEach((e) => e.remove())
+	var info = document.createElement("div")
+	document.querySelector("#createvote").appendChild(info)
+	// info
+	info.innerHTML = `<div>Edit item:</div><div><input type="text" placeholder="Enter item text here" value="${previousCategories[categoryno].items[itemno]}"></div><div><button>Submit</button><button onclick="this.parentNode.parentNode.remove()">Cancel</button></div>`
+	info.children[2].children[0].addEventListener("click", (event) => {
+		post("/data/create_vote", JSON.stringify({
+			type: "edit_item",
+			categoryno,
+			itemno,
+			text: info.querySelector("input").value
+		})).then(() => {
+			event.target.parentNode.parentNode.remove()
+		})
+	})
+}
+function editCategory(categoryno) {
+	[...document.querySelectorAll("#createvote > * + *")].forEach((e) => e.remove())
+	var info = document.createElement("div")
+	document.querySelector("#createvote").appendChild(info)
+	// info
+	info.innerHTML = `<div>Rename category:</div><div>Name: <input type="text" placeholder="Category title here..." value="${previousCategories[categoryno].name}"></div><div><button>Submit</button><button onclick="this.parentNode.parentNode.remove()">Cancel</button></div>`
+	info.children[2].children[0].addEventListener("click", (event) => {
+		post("/data/create_vote", JSON.stringify({
+			type: "edit_category",
 			categoryno,
 			text: info.querySelector("input").value
 		})).then(() => {

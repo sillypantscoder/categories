@@ -48,6 +48,34 @@ class AddCategoryAction(Action):
 	def getName(self):
 		return f"Add category \"{self.category.name}\" to game"
 
+class DeleteCategoryAction(Action):
+	def __init__(self, game: "Game", category: Category):
+		self.game: "Game" = game
+		self.category: Category = category
+	def execute(self):
+		self.game.categories.remove(self.category)
+	def getName(self):
+		return f"Delete category \"{self.category.name}\" from game"
+
+class RenameItemAction(Action):
+	def __init__(self, category: Category, item: Item, newName: str):
+		self.category: Category = category
+		self.item: Item = item
+		self.newName: str = newName
+	def execute(self):
+		self.item.name = self.newName
+	def getName(self):
+		return f"Rename item \"{self.item.name}\" in category \"{self.category.name}\" to \"{self.newName}\""
+
+class RenameCategoryAction(Action):
+	def __init__(self, category: Category, newName: str):
+		self.category: Category = category
+		self.newName: str = newName
+	def execute(self):
+		self.category.name = self.newName
+	def getName(self):
+		return f"Rename category \"{self.category.name}\" to \"{self.newName}\""
+
 class ActiveVote:
 	def __init__(self, game: "Game"):
 		self.target = game
@@ -113,6 +141,14 @@ class Game:
 			self.voteQueue.append(DeleteItemAction(category, category.items[data["itemno"]]))
 		elif data["type"] == "create_category":
 			self.voteQueue.append(AddCategoryAction(self, Category(data["text"]), data["categoryno"]))
+		elif data["type"] == "delete_category":
+			self.voteQueue.append(DeleteCategoryAction(self, self.categories[data["categoryno"]]))
+		elif data["type"] == "edit_item":
+			category = self.categories[data["categoryno"]]
+			self.voteQueue.append(RenameItemAction(category, category.items[data["itemno"]], data["text"]))
+		elif data["type"] == "edit_category":
+			category = self.categories[data["categoryno"]]
+			self.voteQueue.append(RenameCategoryAction(category, data["text"]))
 		else:
 			print("Unknown type!!!")
 			print(repr(data))
