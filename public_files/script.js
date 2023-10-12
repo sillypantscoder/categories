@@ -135,7 +135,7 @@ function refreshCategories() {
 function refreshVote() {
 	var data = request("/data/vote")
 	data.then((v) => {
-		/** @type {{players: string[], vote: { action: string, votes: boolean[], ready: boolean[], finished: boolean }}} */
+		/** @type {{players: string[], votes: { action: string, votes: boolean[], ready: boolean[], finished: boolean }[] }} */
 		var r = JSON.parse(v)
 		return r;
 	}).then((v) => {
@@ -147,67 +147,69 @@ function refreshVote() {
 		[...document.querySelectorAll("#currentvote > * + *")].forEach((e) => e.remove())
 		var e = document.createElement("div")
 		document.querySelector("#currentvote").appendChild(e)
-		// 1. Add vote
-		if (v.vote) {
-			// a. Add the header.
-			e.appendChild(document.createElement("h4"))
-			e.children[0].innerText = v.vote.action
-			// b. Find out if we have already voted.
+		// 1. Check for a vote.
+		/** @type {{ action: string, votes: boolean[], ready: boolean[], finished: boolean }} */
+		var vote = null
+		var votei = -1;
+		for (var voten = 0; voten < v.votes.length; voten++) {
+			// 0. Determine whether this vote is actually interesting to us.
 			var playername = query.name
 			var index = v.players.indexOf(playername)
-			var hasFinished = v.vote.ready[index]
-			// c. Add buttons, if needed.
+			var hasFinished = v.votes[voten].ready[index]
+			if (hasFinished) continue; // not interesting!
+			vote = v.votes[voten];
+			votei = voten + 0;
+			break;
+		}
+		if (vote) {
+			// We need to add the elements to the screen!
+			// 1. Add the header.
+			e.appendChild(document.createElement("h4"))
+			e.children[0].innerText = vote.action
+			// 2. Add buttons, if needed.
 			function votebtn(value) {
 				return (e) => {
+					e.target.parentNode.parentNode.remove()
 					post("/data/vote", JSON.stringify({
 						name: query.name,
-						value
+						value,
+						vote_idx: votei
 					}))
 				}
 			}
-			if (v.vote.finished) {
-				if (hasFinished) {
-					e.appendChild(document.createElement("h4"))
-					e.children[1].innerText = "Please wait for everyone else to finish!"
-				} else {
-					var votes = [0, 0]
-					for (var vote of v.vote.votes) votes[vote * 1] += 1
-					// Add vote buttons
-					e.appendChild(document.createElement("div"))
-					e.children[1].classList.add("vote-button-container")
-					e.children[1].innerHTML = `<div class="vote-button vote-button-no">${votes[0]}</div><div class="vote-button vote-button-yes">${votes[1]}</div>`
-					// Add finish button
-					e.appendChild(document.createElement("div"))
-					e.children[2].classList.add("vote-button-container")
-					e.children[2].innerHTML = `<div class="vote-button vote-button-finish">Finish</div>`
-					e.children[2].children[0].addEventListener("click", votebtn(true))
-				}
+			if (vote.finished) {
+				var votes = [0, 0]
+				for (var _vote of vote.votes) votes[_vote * 1] += 1
+				// Add vote buttons
+				e.appendChild(document.createElement("div"))
+				e.children[1].classList.add("vote-button-container")
+				e.children[1].innerHTML = `<div class="vote-button vote-button-no">${votes[0]}</div><div class="vote-button vote-button-yes">${votes[1]}</div>`
+				// Add finish button
+				e.appendChild(document.createElement("div"))
+				e.children[2].classList.add("vote-button-container")
+				e.children[2].innerHTML = `<div class="vote-button vote-button-finish">Finish</div>`
+				e.children[2].children[0].addEventListener("click", votebtn(true))
 			} else {
-				if (hasFinished) {
-					e.appendChild(document.createElement("h4"))
-					e.children[1].innerText = "Please wait for everyone else to vote!"
-				} else {
-					// Add vote buttons
-					e.appendChild(document.createElement("div"))
-					e.children[1].classList.add("vote-button-container")
-					e.children[1].innerHTML = `<div class="vote-button vote-button-no">No</div><div class="vote-button vote-button-yes">Yes</div>`
-					e.children[1].children[0].addEventListener("click", votebtn(false))
-					e.children[1].children[1].addEventListener("click", votebtn(true))
-				}
+				// Add vote buttons
+				e.appendChild(document.createElement("div"))
+				e.children[1].classList.add("vote-button-container")
+				e.children[1].innerHTML = `<div class="vote-button vote-button-no">No</div><div class="vote-button vote-button-yes">Yes</div>`
+				e.children[1].children[0].addEventListener("click", votebtn(false))
+				e.children[1].children[1].addEventListener("click", votebtn(true))
 			}
 		} else {
 			e.appendChild(document.createElement("h4"))
 			e.children[0].innerText = "There is no voting currently in progress."
 		}
-		// 2. Add player indicators
+		// 3. Add player indicators
 		var playerlist = document.createElement("div")
 		e.appendChild(playerlist)
 		for (var i = 0; i < v.players.length; i++) {
 			var p = document.createElement("div")
 			p.classList.add("player")
-			if (v.vote) {
-				if (v.vote.ready[i]) p.classList.add("player-ready")
-				if (v.vote.finished) p.classList.add("player-vote-" + v.vote.votes[i])
+			if (vote) {
+				if (vote.ready[i]) p.classList.add("player-ready")
+				if (vote.finished) p.classList.add("player-vote-" + vote.votes[i])
 			}
 			p.innerText = v.players[i]
 			playerlist.appendChild(p)

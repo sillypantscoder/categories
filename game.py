@@ -174,10 +174,10 @@ class MoveCategoryAction(Action):
 		}
 
 class ActiveVote:
-	def __init__(self, game: "Game"):
+	def __init__(self, game: "Game", action: Action):
 		self.target = game
-		self.action: Action = game.voteQueue.pop(0)
-		game.currentVote = self
+		self.action: Action = action
+		self.target.votes.append(self)
 		self.votes: list[bool] = [False for a in game.players]
 		self.ready: list[bool] = [False for a in game.players]
 		self.finished = False
@@ -201,7 +201,7 @@ class ActiveVote:
 		pre_no = votes_against > votes_for + votes_null
 		can_pre = (pre_yes or pre_no) and not self.finished
 		all_voted = False not in self.ready
-		can_next_stage = can_pre or all_voted
+		can_next_stage = False or all_voted
 		# Check for next stage
 		if can_next_stage:
 			# Next stage!
@@ -212,8 +212,7 @@ class ActiveVote:
 				if votes_for > votes_against:
 					self.action.execute()
 			else:
-				self.target.currentVote = None
-				self.target.update_active_vote()
+				self.target.votes.remove(self)
 	def toJSON(self):
 		return {
 			"action": self.action.getName(),
@@ -233,8 +232,7 @@ class Game:
 	def __init__(self):
 		self.players: list[str] = []
 		self.categories: list[Category] = []
-		self.currentVote: None | ActiveVote = None
-		self.voteQueue: list[Action] = []
+		self.votes: list[ActiveVote] = []
 	def get_categories(self) -> list[dict[str, str | list[str]]]:
 		return [
 			{"name": c.name, "items": [x.name for x in c.items]}
@@ -243,46 +241,41 @@ class Game:
 	def get_vote(self):
 		return {
 			"players": self.players,
-			"vote": self.currentVote.toJSON() if self.currentVote else False
+			"votes": [v.toJSON() for v in self.votes]
 		}
+	def new_vote(self, action: Action):
+		ActiveVote(self, action)
 	def create_vote(self, data: dict):
 		if data["type"] == "create_item":
-			self.voteQueue.append(AddItemAction(self.categories[data["categoryno"]], data["itemno"], Item(data["text"])))
+			self.new_vote(AddItemAction(self.categories[data["categoryno"]], data["itemno"], Item(data["text"])))
 		elif data["type"] == "delete_item":
 			category = self.categories[data["categoryno"]]
-			self.voteQueue.append(DeleteItemAction(category, category.items[data["itemno"]]))
+			self.new_vote(DeleteItemAction(category, category.items[data["itemno"]]))
 		elif data["type"] == "create_category":
-			self.voteQueue.append(AddCategoryAction(self, Category(data["text"]), data["categoryno"]))
+			self.new_vote(AddCategoryAction(self, Category(data["text"]), data["categoryno"]))
 		elif data["type"] == "delete_category":
-			self.voteQueue.append(DeleteCategoryAction(self, self.categories[data["categoryno"]]))
+			self.new_vote(DeleteCategoryAction(self, self.categories[data["categoryno"]]))
 		elif data["type"] == "edit_item":
 			category = self.categories[data["categoryno"]]
-			self.voteQueue.append(RenameItemAction(category, category.items[data["itemno"]], data["text"]))
+			self.new_vote(RenameItemAction(category, category.items[data["itemno"]], data["text"]))
 		elif data["type"] == "edit_category":
 			category = self.categories[data["categoryno"]]
-			self.voteQueue.append(RenameCategoryAction(category, data["text"]))
+			self.new_vote(RenameCategoryAction(category, data["text"]))
 		elif data["type"] == "move_item":
 			category = self.categories[data["categoryno"]]
-			self.voteQueue.append(MoveItemAction(category, category.items[data["itemno"]], data["amount"]))
+			self.new_vote(MoveItemAction(category, category.items[data["itemno"]], data["amount"]))
 		elif data["type"] == "move_category":
-			self.voteQueue.append(MoveCategoryAction(self, self.categories[data["categoryno"]], data["amount"]))
+			self.new_vote(MoveCategoryAction(self, self.categories[data["categoryno"]], data["amount"]))
 		else:
 			print("Unknown type!!!")
 			print(repr(data))
-		self.update_active_vote()
 	def vote(self, data: dict):
-		if self.currentVote != None:
-			self.currentVote.vote(data["name"], data["value"])
-	def update_active_vote(self):
-		if self.currentVote == None:
-			if len(self.voteQueue) > 0:
-				ActiveVote(self)
+		self.votes[data["vote_idx"]].vote(data["name"], data["value"])
 	def save(self):
 		return {
 			"players": self.players,
 			"categories": [c.save() for c in self.categories],
-			"currentVote": self.currentVote.save() if self.currentVote else False,
-			"voteQueue": [a.save() for a in self.voteQueue]
+			"votes": [v.save() for v in self.votes]
 		}
 
 def save_game(game: Game):
@@ -340,14 +333,10 @@ def load_game(data: str):
 			return Action()
 	for category in decoded["categories"]:
 		game.categories.append(loadCategory(category))
-	if decoded["currentVote"]:
-		game.voteQueue = [loadAction(decoded["currentVote"]["action"])]
-		ActiveVote(game)
-		assert game.currentVote != None
-		game.currentVote.votes = decoded["currentVote"]["votes"]
-		game.currentVote.ready = decoded["currentVote"]["ready"]
-		game.currentVote.finished = decoded["currentVote"]["finished"]
-	for action in decoded["voteQueue"]:
-		o = loadAction(action)
-		game.voteQueue.append(o)
+	game.votes = [ActiveVote(game, loadAction(v["action"])) for v in decoded["votes"]]
+	for vote_data in decoded["votes"]:
+		activeVote = ActiveVote(game, loadAction(vote_data["action"]))
+		activeVote.votes = vote_data["votes"]
+		activeVote.ready = vote_data["ready"]
+		activeVote.finished = vote_data["finished"]
 	return game

@@ -44,6 +44,5 @@
 			"id": 1
 		}
 	],
-	"currentVote": false,
-	"voteQueue": []
+	"votes": []
 }
