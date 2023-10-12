@@ -185,18 +185,30 @@ class ActiveVote:
 		index = self.target.players.index(playername)
 		if not self.finished: self.votes[index] = vote
 		self.ready[index] = True
-		if False not in self.ready:
+		# Tally votes
+		votes_for = 0
+		votes_against = 0
+		votes_null = 0
+		for i in range(len(self.votes)):
+			if self.ready[i] == False:
+				votes_null += 1
+			elif vote:
+				votes_for += 1
+			else:
+				votes_against += 1
+		# Can we switch to next stage early?
+		pre_yes = votes_for > votes_against + votes_null
+		pre_no = votes_against > votes_for + votes_null
+		can_pre = (pre_yes or pre_no) and not self.finished
+		all_voted = False not in self.ready
+		can_next_stage = can_pre or all_voted
+		# Check for next stage
+		if can_next_stage:
 			# Next stage!
 			if not self.finished:
 				self.finished = True
 				self.ready = [False for a in self.ready]
-				votes_for = 0
-				votes_against = 0
-				for vote in self.votes:
-					if vote:
-						votes_for += 1
-					else:
-						votes_against += 1
+				# Finish!
 				if votes_for > votes_against:
 					self.action.execute()
 			else:
